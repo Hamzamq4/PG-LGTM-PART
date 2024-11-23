@@ -37,7 +37,7 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        packs: codeql/java-queries@latest  # Corrected syntax
+        queries: +security-extended  # Use the extended query suite
 
     - name: Build Java Project
       run: |
