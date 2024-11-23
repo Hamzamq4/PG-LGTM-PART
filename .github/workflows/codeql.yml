@@ -1,0 +1,73 @@
+name: "CodeQL Advanced"
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  schedule:
+    - cron: '25 20 * * 6'
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - language: c-cpp
+          build-mode: autobuild
+        - language: java-kotlin
+          build-mode: manual # Manual build mode is needed for Gradle-based Java projects.
+        - language: python
+          build-mode: none
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    # Install Node.js using NVM if your project requires it
+    - name: Set up Node.js with NVM
+      shell: bash
+      run: |
+        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+        export NVM_DIR="$HOME/.nvm"
+        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+        nvm install --lts
+        nvm use --lts
+        node --version
+        npm --version
+
+    # Initializes the CodeQL tools for scanning.
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: ${{ matrix.language }}
+        build-mode: ${{ matrix.build-mode }}
+
+    # If the build mode is manual, include Gradle build steps
+    - if: matrix.build-mode == 'manual'
+      name: Build Java Project with Gradle
+      shell: bash
+      run: |
+        # Ensure Gradle is available
+        ./gradlew --version
+
+        # Clean and build the project
+        ./gradlew clean build
+
+        # If your Gradle project requires specific build tasks for CodeQL, include them here
+        # Example:
+        ./gradlew classes
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3
+      with:
+        category: "/language:${{matrix.language}}"
