@@ -3,6 +3,8 @@ name: "CodeQL Analysis"
 on:
   push:
     branches: [ '**' ]
+    paths-ignore:
+      - 'CODEQL_REPORT.md'
   pull_request:
     branches: [ '**' ]
   schedule:
@@ -35,7 +37,7 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        packs: codeql/java-queries:latest  # Use the latest query packs
+        packs: codeql/java-queries@latest  # Corrected syntax
 
     - name: Build Java Project
       run: |
@@ -57,13 +59,11 @@ jobs:
         sarif-to-md codeql-results.sarif > CODEQL_REPORT.md
 
     - name: Commit and Push CodeQL Report
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add CODEQL_REPORT.md
         git commit -m "Add CodeQL analysis report"
         git push
-      env:
-        GIT_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        # Ensure the token has the necessary permissions
-
