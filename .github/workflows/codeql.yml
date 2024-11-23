@@ -20,6 +20,9 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: List repository files
+      run: ls -R
+
     - name: Set up JDK 17
       uses: actions/setup-java@v3
       with:
@@ -31,12 +34,12 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        # Remove the 'source-root' parameter
 
     - name: Build Java Project
-      working-directory: JPAMB  # Change directory to JPAMB
       run: |
-        mvn clean compile  # Use Maven to build your project
+        cd jpamb
+        mvn clean compile
+      shell: bash
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
