@@ -4,7 +4,7 @@ on:
   push:
     branches: [ '**' ]
     paths-ignore:
-      - 'CODEQL_REPORT.md'
+      - 'codeql-analysis.csv'
   pull_request:
     branches: [ '**' ]
   schedule:
@@ -15,8 +15,7 @@ jobs:
     name: Analyze Java
     runs-on: ubuntu-latest
     permissions:
-      actions: write
-      contents: write
+      contents: write       # Allows writing files to the repository
       security-events: write
 
     steps:
@@ -24,7 +23,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        persist-credentials: false
+        persist-credentials: false  # We'll use a custom token for pushing
 
     - name: Set up JDK 19
       uses: actions/setup-java@v3
@@ -37,7 +36,7 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        queries: +security-extended
+        queries: +security-and-quality  # Use the most comprehensive query suite
 
     - name: Build Java Project
       run: |
@@ -46,18 +45,33 @@ jobs:
       shell: bash
 
     - name: Perform CodeQL Analysis
-      id: codeql-analysis
       uses: github/codeql-action/analyze@v3
       with:
-        output: codeql-results.sarif
-        format: sarifv2.1.0
-        upload: false
+        output: codeql-analysis.sarif
+        upload: false   # We'll handle the SARIF file ourselves
 
-    - name: Convert SARIF to Markdown
+    - name: Convert SARIF to CSV
       run: |
-        pip install --user sarif-tools
-        export PATH="$HOME/.local/bin:$PATH"
-        sarif-to-md codeql-results.sarif > CODEQL_REPORT.md
+        # Use jq to extract relevant fields and output to CSV
+        jq -r '
+          [
+            "Rule ID",
+            "Severity",
+            "Message",
+            "File",
+            "Start Line",
+            "End Line"
+          ],
+          ( .runs[].results[] | [
+            .ruleId,
+            .level,
+            .message.text,
+            .locations[0].physicalLocation.artifactLocation.uri,
+            .locations[0].physicalLocation.region.startLine,
+            .locations[0].physicalLocation.region.endLine
+          ] )
+          | @csv
+        ' codeql-analysis.sarif > codeql-analysis.csv
 
     - name: Commit and Push CodeQL Report
       env:
@@ -65,6 +79,6 @@ jobs:
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add CODEQL_REPORT.md
+        git add codeql-analysis.csv
         git commit -m "Add CodeQL analysis report"
         git push
