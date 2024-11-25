@@ -71,3 +71,5 @@ jobs:
           git commit -m "Add CodeQL Call Graph .dot file" || echo "No changes to commit"
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:${{ github.ref }}
+
+          #dinfar
