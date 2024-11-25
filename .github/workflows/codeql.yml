@@ -36,7 +36,7 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        queries: +security-and-quality  # Use the most comprehensive query suite
+        queries: +security-and-quality
 
     - name: Build Java Project
       run: |
@@ -48,7 +48,7 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         output: codeql-analysis.sarif
-        upload: false   # We'll handle the SARIF file ourselves
+        upload: false
 
     - name: Generate Call Graph
       shell: bash
@@ -56,9 +56,11 @@ jobs:
         CODEQL_DIST: ${{ env.CODEQL_DIST }}
         CODEQL_DATABASE: ${{ env.CODEQL_EXTRACTOR_JAVA_WIP_DATABASE }}
       run: |
+        SEARCH_PATHS="${CODEQL_DIST}/java:${CODEQL_DIST}/ql/java:${{ github.workspace }}/.github/codeql-queries"
         "${CODEQL_DIST}/codeql" database analyze \
           --format=csv \
           --output=call-graph.csv \
+          --search-path "${SEARCH_PATHS}" \
           "${CODEQL_DATABASE}" \
           .github/codeql-queries/call-graph.ql
 
