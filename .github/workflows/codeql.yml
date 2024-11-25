@@ -106,7 +106,7 @@ jobs:
           ' ../results/java.sarif > call-graph.dot
         shell: bash
   
-      - name: Commit and Push Call Graph
+      - name: Commit and Push Call Graph and SARIF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
@@ -123,11 +123,13 @@ jobs:
           # Apply stashed changes
           git stash pop || echo "No changes to pop from stash"
           
-          # Stage and commit the DOT file
-          git add call-graph.dot
-          git commit -m "Add CodeQL call graph in DOT format" || echo "No changes to commit"
+          # Stage and commit the .dot and .sarif files
+          git add call-graph.dot ../results/java.sarif
+          git commit -m "Add CodeQL call graph in DOT and SARIF format" || echo "No changes to commit"
           
           # Push changes
           git push origin HEAD:${{ github.ref }}
+
+
 
 
