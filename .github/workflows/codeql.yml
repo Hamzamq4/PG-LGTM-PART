@@ -98,23 +98,13 @@ jobs:
           output: ../results
           upload: always
   
-      - name: Extract Call Graph Results
+      - name: Process SARIF for Call Graph
         run: |
-          unzip ../results/java.zip -d codeql-results
-          # Check the extracted contents for debugging
-          ls -R codeql-results
-  
-      - name: Convert Results to DOT Format
-        run: |
-          # Assuming call graph data is in 'results.bqrs' or similar
-          dot_file="call-graph.dot"
-          touch $dot_file
-          echo "digraph CallGraph {" > $dot_file
-          # Use a placeholder parser or script to populate $dot_file
-          # Example:
-          # Parse the extracted 'results.bqrs' to generate DOT graph
-          echo "Graph generated." >> $dot_file
-          echo "}" >> $dot_file
+          jq -r '
+            .runs[].results[] |
+            "Caller: \(.locations[0].physicalLocation.artifactLocation.uri)\nCallee: \(.locations[1].physicalLocation.artifactLocation.uri)\n"
+          ' ../results/java.sarif > call-graph.dot
+        shell: bash
   
       - name: Commit and Push Call Graph
         env:
