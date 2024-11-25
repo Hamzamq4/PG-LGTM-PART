@@ -81,6 +81,7 @@ jobs:
         with:
           languages: 'java'
           build-mode: 'manual'
+          tools: latest  # Add this line
 
       - name: Build Java Project
         run: |
