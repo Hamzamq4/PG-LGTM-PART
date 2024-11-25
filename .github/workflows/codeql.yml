@@ -35,9 +35,7 @@ jobs:
         with:
           languages: "java"
           build-mode: "manual"
-          queries: |
-            - security-and-quality
-            - .github/codeql-queries/call-graph.ql # Add your custom query
+          queries: "security-and-quality, .github/codeql-queries/call-graph.ql"
 
       - name: Build Java Project
         run: |
