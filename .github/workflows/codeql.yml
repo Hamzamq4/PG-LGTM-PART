@@ -36,7 +36,7 @@ jobs:
         with:
           languages: "java"
           build-mode: "manual"
-          queries: +security-and-quality # Use the most comprehensive query suite
+          queries: "+security-and-quality, ./.github/codeql-queries/call-graph.ql" # Use the most comprehensive query suite
 
       - name: Build Java Project
         run: |
@@ -48,7 +48,15 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           output: codeql-analysis.sarif
-          upload: false # We'll handle the SARIF file ourselves
+          upload: false # We'll handle the SARIF file ourselves'
+          
+      - name: Generate Call Graph
+        run: |
+          codeql database analyze \
+            ./codeql-database \
+            ./.github/codeql-queries/call-graph.ql \
+            --format=dot \
+            --output=call-graph.dot
 
       - name: Commit and Push CodeQL SARIF Report
         env:
@@ -61,3 +69,15 @@ jobs:
           # Configure Git to use the GITHUB_TOKEN for authentication
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:${{ github.ref }}
+
+
+      - name: Commit and Push Call Graph
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add call-graph.dot
+          git commit -m "Add Call Graph DOT file"
+          git push origin HEAD:${{ github.ref }}
+
