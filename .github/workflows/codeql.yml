@@ -63,6 +63,9 @@ jobs:
   generate-call-graph:
     name: Generate Call Graph
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      security-events: write
     needs: analyze-java
     steps:
       - name: Checkout repository
