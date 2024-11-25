@@ -50,12 +50,8 @@ jobs:
           upload: false # We'll handle the SARIF files ourselves
 
       - name: Run Custom Call Graph Query
-        uses: github/codeql-action/analyze@v3
-        with:
-          output: call-graph.bqrs
-          format: bqrs
-          queries: ./.github/codeql-queries/call-graph.ql
-          database: ${{ github.workspace }}/codeql-db
+        run: |
+          codeql query run ./.github/codeql-queries/call-graph.ql --database ${{ github.workspace }}/codeql-db --format=bqrs --output=call-graph.bqrs
 
       - name: Decode Call Graph Results to JSON
         run: |
@@ -63,7 +59,7 @@ jobs:
 
       - name: Generate Call Graph .dot File
         run: |
-          python3 generate_dot.py call-graph.json call-graph.dot
+          python3 scripts/generate_dot.py call-graph.json call-graph.dot
 
       - name: Commit and Push Call Graph .dot File
         env:
