@@ -112,7 +112,9 @@ jobs:
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
+          git fetch origin
+          git rebase origin/main
           git add call-graph.dot
-          git commit -m "Add CodeQL call graph in DOT format"
-          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git commit -m "Add CodeQL call graph in DOT format" || echo "No changes to commit"
           git push origin HEAD:${{ github.ref }}
+
