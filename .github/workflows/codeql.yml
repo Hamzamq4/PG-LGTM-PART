@@ -15,7 +15,7 @@ jobs:
     name: Analyze Java
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write       # Allows writing files to the repository
       security-events: write
 
     steps:
@@ -23,6 +23,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
+        # Remove 'persist-credentials: false' to keep the default behavior (true)
 
     - name: Set up JDK 19
       uses: actions/setup-java@v3
@@ -35,7 +36,7 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        queries: ./.github/codeql-queries
+        queries: +security-and-quality  # Use the most comprehensive query suite
 
     - name: Build Java Project
       run: |
@@ -47,12 +48,16 @@ jobs:
       uses: github/codeql-action/analyze@v3
       with:
         output: codeql-analysis.sarif
-        upload: false
+        upload: false   # We'll handle the SARIF file ourselves
 
-    - name: Commit and Push CodeQL Results
+    - name: Commit and Push CodeQL SARIF Report
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git add codeql-analysis.sarif
-        git commit -m "Add CodeQL analysis SARIF report with custom query results"
-        git push
+        git commit -m "Add CodeQL analysis SARIF report"
+        # Configure Git to use the GITHUB_TOKEN for authentication
+        git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+        git push origin HEAD:${{ github.ref }}
