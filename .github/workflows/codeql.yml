@@ -5,7 +5,6 @@ on:
     branches: [ '**' ]
     paths-ignore:
       - 'codeql-analysis.sarif'
-      - 'call-graph.csv'
   pull_request:
     branches: [ '**' ]
   schedule:
@@ -36,7 +35,9 @@ jobs:
       with:
         languages: 'java'
         build-mode: 'manual'
-        queries: +security-and-quality
+        queries: |
+          +security-and-quality
+          ./.github/codeql-queries/
 
     - name: Build Java Project
       run: |
@@ -50,28 +51,10 @@ jobs:
         output: codeql-analysis.sarif
         upload: false
 
-    - name: Generate Call Graph
-      shell: bash
-      env:
-        CODEQL_DIST: ${{ env.CODEQL_DIST }}
-        CODEQL_DATABASE: ${{ env.CODEQL_EXTRACTOR_JAVA_WIP_DATABASE }}
-      run: |
-        # Install standard CodeQL packs
-        "${CODEQL_DIST}/codeql" pack install codeql/java-all
-    
-        # Run the analysis with the standard Java pack
-        "${CODEQL_DIST}/codeql" database analyze \
-          --format=csv \
-          --output=call-graph.csv \
-          --additional-packs codeql/java-all \
-          "${CODEQL_DATABASE}" \
-          .github/codeql-queries/call-graph.ql
-
-
     - name: Commit and Push CodeQL Results
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add codeql-analysis.sarif call-graph.csv
-        git commit -m "Add CodeQL analysis SARIF report and call graph"
+        git add codeql-analysis.sarif
+        git commit -m "Add CodeQL analysis SARIF report with custom query results"
         git push
