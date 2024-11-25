@@ -1,9 +1,22 @@
+/**
+ * @name Method Call Relationships
+ * @description Extracts caller and callee method pairs to build a call graph.
+ * @kind path-problem
+ * @problem.severity info
+ * @tags call-graph
+ */
+
 import java
 
-from Method caller, MethodAccess call, Method callee
+/**
+ * Represents a call relationship between two methods.
+ */
+class MethodCall extends CallExpr {
+  MethodCall() { this instanceof CallExpr }
+}
+
+from Method caller, Method callee, MethodCall call
 where
-  // The method being called
-  call.getCallee() = callee and
-  // The method containing the call
+  call.getMethod() = callee and
   call.getEnclosingCallable() = caller
-select caller, callee, call, "Call graph relationship found."
+select call, caller, callee, "Method " + caller.getName() + " calls " + callee.getName()
