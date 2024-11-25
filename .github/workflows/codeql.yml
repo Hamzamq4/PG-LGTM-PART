@@ -49,18 +49,34 @@ jobs:
         with:
           output: codeql-analysis.sarif
           upload: false # We'll handle the SARIF file ourselves'
+
+      - name: Persist CodeQL Database
+        run: |
+          # Add CodeQL CLI to PATH (pre-installed on GitHub-hosted runners)
+          export PATH="/opt/hostedtoolcache/CodeQL/2.19.3/x64/codeql:$PATH"
           
+          # Ensure the database is persisted for further use
+          mkdir -p ./codeql-database
+        shell: bash
+
       - name: Generate Call Graph
         run: |
           # Add CodeQL CLI to PATH (pre-installed on GitHub-hosted runners)
           export PATH="/opt/hostedtoolcache/CodeQL/2.19.3/x64/codeql:$PATH"
-      
+          
           # Generate the call graph
           codeql database analyze \
             ./codeql-database \
             ./.github/codeql-queries/call-graph.ql \
             --format=dot \
             --output=call-graph.dot
+        shell: bash
+
+      - name: Debug CodeQL Database
+        run: |
+          # Verify the database directory structure for debugging
+          echo "Listing codeql-database contents..."
+          ls -la ./codeql-database
         shell: bash
 
       - name: Commit and Push CodeQL SARIF Report
@@ -75,7 +91,6 @@ jobs:
           git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
           git push origin HEAD:${{ github.ref }}
 
-
       - name: Commit and Push Call Graph
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,4 +100,3 @@ jobs:
           git add call-graph.dot
           git commit -m "Add Call Graph DOT file"
           git push origin HEAD:${{ github.ref }}
-
