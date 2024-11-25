@@ -23,7 +23,6 @@ jobs:
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        # Remove 'persist-credentials: false' to keep the default behavior (true)
 
     - name: Set up JDK 19
       uses: actions/setup-java@v3
@@ -50,14 +49,22 @@ jobs:
         output: codeql-analysis.sarif
         upload: false   # We'll handle the SARIF file ourselves
 
-    - name: Commit and Push CodeQL SARIF Report
+    - name: Generate Call Graph
+      run: |
+        codeql database analyze \
+          --format=csv \
+          --output=call-graph.csv \
+          codeql-db .github/codeql-queries/call-graph.ql
+      shell: bash
+
+    - name: Commit and Push CodeQL Results
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         git config --local user.email "github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
-        git add codeql-analysis.sarif
-        git commit -m "Add CodeQL analysis SARIF report"
+        git add codeql-analysis.sarif call-graph.csv
+        git commit -m "Add CodeQL analysis SARIF report and call graph"
         # Configure Git to use the GITHUB_TOKEN for authentication
         git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
         git push origin HEAD:${{ github.ref }}
