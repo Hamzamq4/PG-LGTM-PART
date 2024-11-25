@@ -64,6 +64,9 @@ jobs:
       name: Generate Call Graph
       runs-on: ubuntu-latest
       needs: analyze-java
+      permissions:
+        contents: write
+        security-events: write
       steps:
         - name: Checkout repository
           uses: actions/checkout@v4
