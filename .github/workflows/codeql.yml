@@ -56,13 +56,17 @@ jobs:
         CODEQL_DIST: ${{ env.CODEQL_DIST }}
         CODEQL_DATABASE: ${{ env.CODEQL_EXTRACTOR_JAVA_WIP_DATABASE }}
       run: |
-        SEARCH_PATHS="${CODEQL_DIST}/java:${CODEQL_DIST}/ql/java:${{ github.workspace }}/.github/codeql-queries"
+        # Install standard CodeQL packs
+        "${CODEQL_DIST}/codeql" pack install codeql/java-all
+    
+        # Run the analysis with the standard Java pack
         "${CODEQL_DIST}/codeql" database analyze \
           --format=csv \
           --output=call-graph.csv \
-          --search-path "${SEARCH_PATHS}" \
+          --additional-packs codeql/java-all \
           "${CODEQL_DATABASE}" \
           .github/codeql-queries/call-graph.ql
+
 
     - name: Commit and Push CodeQL Results
       run: |
