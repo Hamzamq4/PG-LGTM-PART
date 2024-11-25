@@ -51,8 +51,10 @@ jobs:
           # Create a CodeQL database for Java
           codeql database create ./codeql-database \
             --language=java \
-            --command="mvn clean compile"
+            --source-root=./jpamb \
+            --command="mvn -f ./jpamb/pom.xml clean compile"
         shell: bash
+
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
