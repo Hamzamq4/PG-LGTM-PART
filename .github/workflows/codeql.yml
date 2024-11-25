@@ -51,7 +51,7 @@ jobs:
 
     - name: Generate Call Graph
       run: |
-        ./codeql/codeql database analyze \
+        codeql database analyze \
           --format=csv \
           --output=call-graph.csv \
           codeql-db .github/codeql-queries/call-graph.ql
