@@ -52,11 +52,16 @@ jobs:
           
       - name: Generate Call Graph
         run: |
+          # Add CodeQL CLI to PATH (pre-installed on GitHub-hosted runners)
+          export PATH="/opt/hostedtoolcache/CodeQL/2.19.3/x64/codeql:$PATH"
+      
+          # Generate the call graph
           codeql database analyze \
             ./codeql-database \
             ./.github/codeql-queries/call-graph.ql \
             --format=dot \
             --output=call-graph.dot
+        shell: bash
 
       - name: Commit and Push CodeQL SARIF Report
         env:
