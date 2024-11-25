@@ -106,6 +106,12 @@ jobs:
           ' ../results/java.sarif > call-graph.dot
         shell: bash
   
+      - name: Move SARIF File Into Repository
+        run: |
+          # Ensure the directory exists and move the SARIF file
+          mkdir -p .github/results
+          mv ../results/java.sarif .github/results/java.sarif
+  
       - name: Commit and Push Call Graph and SARIF
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -124,11 +130,12 @@ jobs:
           git stash pop || echo "No changes to pop from stash"
           
           # Stage and commit the .dot and .sarif files
-          git add call-graph.dot ../results/java.sarif
+          git add call-graph.dot .github/results/java.sarif
           git commit -m "Add CodeQL call graph in DOT and SARIF format" || echo "No changes to commit"
           
           # Push changes
           git push origin HEAD:${{ github.ref }}
+
 
 
 
