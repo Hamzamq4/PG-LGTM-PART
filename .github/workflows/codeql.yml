@@ -95,6 +95,13 @@ jobs:
           uses: github/codeql-action/analyze@v3
           with:
             queries: ./.github/codeql-queries/call-graph.ql
+            
+        - name: Convert SARIF to DOT
+          run: |
+            jq -r '
+            .runs[].results[] |
+            "Caller: \(.locations[0].physicalLocation.artifactLocation.uri)\nCallee: \(.locations[1].physicalLocation.artifactLocation.uri)\n" ' \
+            results/java.sarif > call-graph.dot
   
         - name: Commit and Push Call Graph
           env:
